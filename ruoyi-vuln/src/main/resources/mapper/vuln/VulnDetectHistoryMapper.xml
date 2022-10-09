@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.vuln.mapper.VulnDetectHistoryMapper">
+    
+    <resultMap type="VulnDetectHistory" id="VulnDetectHistoryResult">
+        <result property="recordsId"    column="records_id"    />
+        <result property="command"    column="command"    />
+        <result property="targetRange"    column="target_range"    />
+        <result property="scanDatetime"    column="scan_datetime"    />
+        <result property="highriskRate"    column="highrisk_rate"    />
+        <result property="results"    column="results"    />
+    </resultMap>
+
+    <resultMap id="VulnDetectHistoryVulnSingleAddrDetailsResult" type="VulnDetectHistory" extends="VulnDetectHistoryResult">
+        <collection property="vulnSingleAddrDetailsList" notNullColumn="sub_ipaddr_id" javaType="java.util.List" resultMap="VulnSingleAddrDetailsResult" />
+    </resultMap>
+
+    <resultMap type="VulnSingleAddrDetails" id="VulnSingleAddrDetailsResult">
+        <result property="ipaddrId"    column="sub_ipaddr_id"    />
+        <result property="recordsId"    column="sub_records_id"    />
+        <result property="ipv6Addr"    column="sub_ipv6_addr"    />
+        <result property="resultDetails"    column="sub_result_details"    />
+    </resultMap>
+
+    <sql id="selectVulnDetectHistoryVo">
+        select records_id, command, target_range, scan_datetime, highrisk_rate, results from vuln_detect_history order by scan_datetime DESC
+    </sql>
+
+    <select id="selectVulnDetectHistoryList" parameterType="VulnDetectHistory" resultMap="VulnDetectHistoryResult">
+        <include refid="selectVulnDetectHistoryVo"/>
+        <where>  
+            <if test="command != null  and command != ''"> and command = #{command}</if>
+            <if test="targetRange != null  and targetRange != ''"> and target_range = #{targetRange}</if>
+            <if test="scanDatetime != null "> and scan_datetime = #{scanDatetime}</if>
+            <if test="highriskRate != null  and highriskRate != ''"> and highrisk_rate = #{highriskRate}</if>
+            <if test="results != null  and results != ''"> and results = #{results}</if>
+        </where>
+    </select>
+    
+    <select id="selectVulnDetectHistoryByRecordsId" parameterType="Long" resultMap="VulnDetectHistoryVulnSingleAddrDetailsResult">
+        select a.records_id, a.command, a.target_range, a.scan_datetime, a.highrisk_rate,
+ b.ipaddr_id as sub_ipaddr_id, b.records_id as sub_records_id, b.ipv6_addr as sub_ipv6_addr, b.result_details as sub_result_details
+        from vuln_detect_history a
+        left join vuln_single_addr_details b on b.records_id = a.records_id
+        where a.records_id = #{recordsId}
+    </select>
+        
+    <insert id="insertVulnDetectHistory" parameterType="VulnDetectHistory" useGeneratedKeys="true" keyProperty="recordsId">
+        insert into vuln_detect_history
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="command != null and command != ''">command,</if>
+            <if test="targetRange != null and targetRange != ''">target_range,</if>
+            <if test="scanDatetime != null">scan_datetime,</if>
+            <if test="highriskRate != null">highrisk_rate,</if>
+            <if test="results != null">results,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="command != null and command != ''">#{command},</if>
+            <if test="targetRange != null and targetRange != ''">#{targetRange},</if>
+            <if test="scanDatetime != null">#{scanDatetime},</if>
+            <if test="highriskRate != null">#{highriskRate},</if>
+            <if test="results != null">#{results},</if>
+         </trim>
+    </insert>
+
+    <update id="updateVulnDetectHistory" parameterType="VulnDetectHistory">
+        update vuln_detect_history
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="command != null and command != ''">command = #{command},</if>
+            <if test="targetRange != null and targetRange != ''">target_range = #{targetRange},</if>
+            <if test="scanDatetime != null">scan_datetime = #{scanDatetime},</if>
+            <if test="highriskRate != null">highrisk_rate = #{highriskRate},</if>
+        </trim>
+        where records_id = #{recordsId}
+    </update>
+
+    <delete id="deleteVulnDetectHistoryByRecordsId" parameterType="Long">
+        delete from vuln_detect_history where records_id = #{recordsId}
+    </delete>
+
+    <delete id="deleteVulnDetectHistoryByRecordsIds" parameterType="String">
+        delete from vuln_detect_history where records_id in 
+        <foreach item="recordsId" collection="array" open="(" separator="," close=")">
+            #{recordsId}
+        </foreach>
+    </delete>
+    
+    <delete id="deleteVulnSingleAddrDetailsByRecordsIds" parameterType="String">
+        delete from vuln_single_addr_details where records_id in 
+        <foreach item="recordsId" collection="array" open="(" separator="," close=")">
+            #{recordsId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVulnSingleAddrDetailsByRecordsId" parameterType="Long">
+        delete from vuln_single_addr_details where records_id = #{recordsId}
+    </delete>
+
+    <insert id="batchVulnSingleAddrDetails">
+        insert into vuln_single_addr_details( ipaddr_id, records_id, ipv6_addr, result_details) values
+		<foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.ipaddrId}, #{item.recordsId}, #{item.ipv6Addr}, #{item.resultDetails})
+        </foreach>
+    </insert>
+</mapper>

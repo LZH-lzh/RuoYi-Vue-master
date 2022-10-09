@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.vuln.mapper.VulnRepositoryMapper">
+    
+    <resultMap type="VulnRepository" id="VulnRepositoryResult">
+        <result property="scriptId"    column="script_id"    />
+        <result property="scriptName"    column="script_name"    />
+        <result property="scriptDescription"    column="script_description"    />
+    </resultMap>
+
+    <sql id="selectVulnRepositoryVo">
+        select script_id, script_name, script_description from vuln_repository
+    </sql>
+
+    <select id="selectVulnRepositoryList" parameterType="VulnRepository" resultMap="VulnRepositoryResult">
+        <include refid="selectVulnRepositoryVo"/>
+        <where>  
+            <if test="scriptName != null  and scriptName != ''"> and script_name like concat('%', #{scriptName}, '%')</if>
+            <if test="scriptDescription != null  and scriptDescription != ''"> and script_description = #{scriptDescription}</if>
+        </where>
+    </select>
+    
+    <select id="selectVulnRepositoryByScriptId" parameterType="Long" resultMap="VulnRepositoryResult">
+        <include refid="selectVulnRepositoryVo"/>
+        where script_id = #{scriptId}
+    </select>
+        
+    <insert id="insertVulnRepository" parameterType="VulnRepository" useGeneratedKeys="true" keyProperty="scriptId">
+        insert into vuln_repository
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="scriptName != null and scriptName != ''">script_name,</if>
+            <if test="scriptDescription != null">script_description,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="scriptName != null and scriptName != ''">#{scriptName},</if>
+            <if test="scriptDescription != null">#{scriptDescription},</if>
+         </trim>
+    </insert>
+
+    <update id="updateVulnRepository" parameterType="VulnRepository">
+        update vuln_repository
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="scriptName != null and scriptName != ''">script_name = #{scriptName},</if>
+            <if test="scriptDescription != null">script_description = #{scriptDescription},</if>
+        </trim>
+        where script_id = #{scriptId}
+    </update>
+
+    <delete id="deleteVulnRepositoryByScriptId" parameterType="Long">
+        delete from vuln_repository where script_id = #{scriptId}
+    </delete>
+
+    <delete id="deleteVulnRepositoryByScriptIds" parameterType="String">
+        delete from vuln_repository where script_id in 
+        <foreach item="scriptId" collection="array" open="(" separator="," close=")">
+            #{scriptId}
+        </foreach>
+    </delete>
+</mapper>
