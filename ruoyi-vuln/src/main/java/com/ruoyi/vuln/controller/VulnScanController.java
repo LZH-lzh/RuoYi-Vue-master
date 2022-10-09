@@ -76,7 +76,7 @@ public class VulnScanController extends BaseController implements CommandExecuto
         subject.addObserver(this);
         int len = finishedCommands.size();
         nmapExecutor.nmapExecute(nmapCommand);
-        System.out.println("返回值");
+        System.out.println("返回1值byllll");
         System.out.println(finishedCommands.get(0).getUuid()+finishedCommands.get(0).getOutput());
         return AjaxResult.success(new Output(finishedCommands.get(0).getUuid(),finishedCommands.get(0).getOutput()));
     }
